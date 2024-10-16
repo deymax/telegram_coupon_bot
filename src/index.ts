@@ -17,10 +17,8 @@ const WooCommerce = new WooCommerceRestApi({
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN!, { polling: true });
 const redis = new Redis();
 
-// Хеш перевіреного пароля, взятий з .env
 const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH!;
 
-// Глобальний флаг для перевірки, чи користувач є адміністратором
 const isAdminAuthenticated: Record<number, boolean> = {};
 
 function generateUniqueCouponCode() {
@@ -69,19 +67,17 @@ bot.onText(/\/start/, async (msg: TelegramBot.Message) => {
     const password = msg.text;
     if (password) {
       const match = await bcrypt.compare(password, adminPasswordHash);
-      isAdminAuthenticated[chatId] = match; // Зберігаємо статус адміністратора
+      isAdminAuthenticated[chatId] = match;
       if (match) {
         await bot.sendMessage(chatId, "You are now authenticated as an admin.");
       } else {
         await bot.sendMessage(chatId, "Wrong password. Access denied.");
       }
     }
-    // Показуємо меню незалежно від того, чи пароль правильний
     showMainMenu(chatId);
   });
 });
 
-// Обробка натискання кнопок
 bot.on("callback_query", async (query: TelegramBot.CallbackQuery) => {
   const chatId = query.from.id;
   const action = query.data;
@@ -103,7 +99,6 @@ bot.on("callback_query", async (query: TelegramBot.CallbackQuery) => {
   }
 });
 
-// Обробка текстових команд /create і /help
 bot.onText(/\/create/, async (msg: TelegramBot.Message) => {
   const chatId = msg.chat.id;
   if (!isAdminAuthenticated[chatId]) {
@@ -124,7 +119,6 @@ bot.onText(/\/help/, async (msg: TelegramBot.Message) => {
   await bot.sendMessage(chatId, "Use /create to create a coupon (admins only) or /help for assistance.");
 });
 
-// Команда для показу меню
 bot.onText(/\/menu/, (msg: TelegramBot.Message) => {
   const chatId = msg.chat.id;
   showMainMenu(chatId);
