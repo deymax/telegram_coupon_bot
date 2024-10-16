@@ -1,4 +1,3 @@
-# Исключаем node_modules и логи
 node_modules/
 logs/
 bot_logs.txt
